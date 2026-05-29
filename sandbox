@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+QUIET=false
+DELETE=false
+RUNTIME=false
+COPY=false
+VERBOSE=false
+
+info() {
+  [[ $VERBOSE == true ]] && printf 'Info: %s\n' "$*"
+}
+
+usage() {
+  cat <<EOF
+Usage:
+  ${0##*/} [-qdrcv] command [args...]
+
+Options:
+  -q    Quiet mode
+  -d    Delete sandbox on exit
+  -r    Create XDG_RUNTIME_DIR
+  -c    Copy shell rc files
+  -v    Verbose mode
+EOF
+}
+
+while getopts ":qdrcv" opt; do
+  case "$opt" in
+  q) QUIET=true ;;
+  d) DELETE=true ;;
+  r) RUNTIME=true ;;
+  c) COPY=true ;;
+  v) VERBOSE=true ;;
+  \?)
+    echo "Unknown option: -$OPTARG" >&2
+    usage >&2
+    exit 1
+    ;;
+  esac
+done
+
+shift $((OPTIND - 1))
+
+(($#)) || {
+  usage >&2
+  exit 1
+}
+
+command -v "$1" &>/dev/null || {
+  echo "Command not found: $1" >&2
+  exit 1
+}
+
+REAL_HOME="$HOME"
+TMPDIR="${SANDBOX_DIR:-$(mktemp -d --suffix="-${1##*/}")}"
+
+cleanup() {
+  [[ $DELETE == true ]] || return
+
+  rm -rf "$TMPDIR"
+  info "Deleted $TMPDIR"
+}
+
+trap cleanup EXIT INT TERM
+
+REAL_HOME="$HOME"
+export HOME="$TMPDIR/home"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
+
+mkdir -p \
+  "$XDG_CONFIG_HOME" \
+  "$XDG_DATA_HOME" \
+  "$XDG_CONFIG_HOME" \
+  "$HOME/.local/"{share,state,bin}
+info "$TMPDIR"
+
+if [[ $COPY == true ]]; then
+  for file in .zshrc .bashrc; do
+    [[ -f "$REAL_HOME/$file" ]] &&
+      cp "$REAL_HOME/$file" "$HOME/"
+  done
+fi
+
+if [[ $RUNTIME == true ]]; then
+  export XDG_RUNTIME_DIR="$TMPDIR/runtime"
+
+  mkdir -p "$XDG_RUNTIME_DIR"
+  chmod 0700 "$XDG_RUNTIME_DIR"
+fi
+
+if [[ $QUIET == true ]]; then
+  "$@" &>/dev/null
+else
+  "$@"
+fi
