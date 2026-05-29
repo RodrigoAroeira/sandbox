@@ -1,9 +1,9 @@
-pkgname="sandbox"
+pkgname="xdg-sandbox"
 pkgver="0.1.0"
 pkgrel=1
 arch=('any')
 source=('sandbox')
-md5sums=("61aebb24064e82ed137f02c08f900956")
+md5sums=('61aebb24064e82ed137f02c08f900956')
 depends=('bash')
 
 verify() {
@@ -11,5 +11,5 @@ verify() {
 }
 
 package() {
-  install -Dm755 sandbox "$pkgdir/usr/bin/sandbox"
+  install -Dm755 sandbox "$pkgdir/usr/bin/$pkgname"
 }
