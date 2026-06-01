@@ -1,9 +1,9 @@
 pkgname="xdg-sandbox"
-pkgver="0.1.0"
-pkgrel=2
+pkgver="0.2.0"
+pkgrel=1
 arch=('any')
 source=('sandbox')
-md5sums=('61aebb24064e82ed137f02c08f900956')
+md5sums=('f5eeb978c8d02697dfc3909eed6b59e3')
 depends=('bash')
 
 verify() {

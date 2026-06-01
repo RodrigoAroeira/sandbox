@@ -78,10 +78,10 @@ mkdir -p \
 info "$TMPDIR"
 
 if [[ $COPY == true ]]; then
-  for file in .zshrc .bashrc; do
-    [[ -f "$REAL_HOME/$file" ]] &&
-      cp "$REAL_HOME/$file" "$HOME/"
-  done
+  (
+    cd "$REAL_HOME"
+    cp .*sh* $HOME
+  )
 fi
 
 if [[ $RUNTIME == true ]]; then
