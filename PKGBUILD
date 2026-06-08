@@ -3,7 +3,7 @@ pkgver=0.3.0
 pkgrel=1
 arch=('any')
 source=('sandbox')
-md5sums=('b251346e8f40c7472ee57322736ed245')
+md5sums=('1210ebf5e8305f48bbcd60299a8911b2')
 depends=('bash')
 
 verify() {
