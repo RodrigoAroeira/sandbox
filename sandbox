@@ -3,7 +3,7 @@
 QUIET=false
 DELETE=false
 RUNTIME=false
-COPY=false
+COPY=0
 VERBOSE=false
 
 info() {
@@ -29,7 +29,7 @@ while getopts ":qdrcv" opt; do
   q) QUIET=true ;;
   d) DELETE=true ;;
   r) RUNTIME=true ;;
-  c) COPY=true ;;
+  c) ((COPY += 1)) ;;
   v) VERBOSE=true ;;
   \?)
     echo "Unknown option: -$OPTARG" >&2
@@ -77,10 +77,17 @@ mkdir -p \
   "$HOME/.local/"{share,state,bin}
 info "$TMPDIR"
 
-if [[ $COPY == true ]]; then
+if [[ $COPY -ge 1 ]]; then
   (
-    cd "$REAL_HOME"
-    cp .*sh* $HOME
+    cd "$REAL_HOME" || exit
+    shopt -s nullglob
+    files=(.*sh*)
+    ((${#files[@]})) || exit
+    if [[ $COPY -ge 2 ]]; then
+      cp -rL "${files[@]}" "$HOME"
+    else
+      cp "${files[@]}" "$HOME" 2>/dev/null
+    fi
   )
 fi
 
