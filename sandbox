@@ -51,20 +51,20 @@ command -v "$1" &>/dev/null || {
   exit 1
 }
 
-REAL_HOME="$HOME"
-TMPDIR="${SANDBOX_DIR:-$(mktemp -d --suffix="-${1##*/}")}"
+SANDBOX_TMPDIR="${SANDBOX_DIR:-$(mktemp -d --suffix="-${1##*/}")}"
+SANDBOX_TMPDIR="$(readlink -f "$SANDBOX_TMPDIR")"
 
 cleanup() {
   [[ $DELETE == true ]] || return
 
-  rm -rf "$TMPDIR"
-  info "Deleted $TMPDIR"
+  rm -rf "$SANDBOX_TMPDIR"
+  info "Deleted $SANDBOX_TMPDIR"
 }
 
 trap cleanup EXIT INT TERM
 
 REAL_HOME="$HOME"
-export HOME="$TMPDIR/home"
+export HOME="$SANDBOX_TMPDIR/home"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
@@ -73,9 +73,9 @@ export XDG_CACHE_HOME="$HOME/.cache"
 mkdir -p \
   "$XDG_CONFIG_HOME" \
   "$XDG_DATA_HOME" \
-  "$XDG_CONFIG_HOME" \
+  "$XDG_STATE_HOME" \
   "$HOME/.local/"{share,state,bin}
-info "$TMPDIR"
+info "$SANDBOX_TMPDIR"
 
 if [[ $COPY -ge 1 ]]; then
   (
@@ -92,7 +92,7 @@ if [[ $COPY -ge 1 ]]; then
 fi
 
 if [[ $RUNTIME == true ]]; then
-  export XDG_RUNTIME_DIR="$TMPDIR/runtime"
+  export XDG_RUNTIME_DIR="$SANDBOX_TMPDIR/runtime"
 
   mkdir -p "$XDG_RUNTIME_DIR"
   chmod 0700 "$XDG_RUNTIME_DIR"
